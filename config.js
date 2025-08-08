@@ -5,7 +5,7 @@ var config = {}
 switch (env) {
     case 'beamup':
 		config.port = process.env.PORT
-        config.local = "https://2ecbbd610840-stremio-iptv.baby-beamup.club/manifest.json"
+        config.local = "https://perceptive-healing.up.railway.app/manifest.json"
         break;
 
     case 'local':
