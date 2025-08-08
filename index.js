@@ -55,16 +55,21 @@ app.get('/:configuration/manifest.json', (req, res) => {
             });
         }
     }
-    if (providors) {
-        for (let i = 0; i < providors.length; i++) {
-            manifestClone.catalogs.push({
-                "type": "tv",
-                "id": "stremio_iptv_id:" + providors[i],
-                "name": regions[providors[i]].name,
-                "extra": [{ "name": "search", "isRequired": false }]
-            });
-        }
+
+    // ✅ Fix: show all regions.json entries if no providors in config
+    const allProviders = providors && providors.length > 0
+        ? providors
+        : Object.keys(regions);
+
+    for (let i = 0; i < allProviders.length; i++) {
+        manifestClone.catalogs.push({
+            "type": "tv",
+            "id": "stremio_iptv_id:" + allProviders[i],
+            "name": regions[allProviders[i]].name,
+            "extra": [{ "name": "search", "isRequired": false }]
+        });
     }
+
     manifestClone.behaviorHints = manifestClone.behaviorHints || {};
     manifestClone.behaviorHints.configurationRequired = false;
     res.setHeader('Cache-Control', 'max-age=86400,staleRevalidate=stale-while-revalidate, staleError=stale-if-error, public');
