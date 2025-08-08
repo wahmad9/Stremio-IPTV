@@ -1267,20 +1267,20 @@
 		"url": "https://iptv-org.github.io/iptv/countries/undefined.m3u",
 		"id": "undefinediptv"
  },
- "prigoana": {
-		"name": "prigoanatv",
+ "pri": {
+		"name": "PrigoanaTv",
 		"url":    "https://m3u.prigoana.com/all.m3u",
-		"id": "prigoana"
+		"id": "pri"
  },
- "Darkiptv": {
+ "darkip": {
 		"name": "DarkTv",
 		"url": "https://gist.githubusercontent.com/jjaayy881/26c8a58e0c96eb7e43ed8c82fc9fb767/raw/8bee86cf1604ae490aeeb19423817f3d2f33cc83/playlist.m3u",
-		"id": "Darkiptv"
+		"id": "darkip"
  },
- "algoiptv": {
-		"name": "algoTv",
+ "algo": {
+		"name": "AlgoTv",
 		"url": "https://gist.githubusercontent.com/aglobus/a21de5cd36294e4db057450b0e7988ff/raw/f630e87bf10fc12d49409cd4c5a1a107d11bd6d0/playlist.m3u",
-		"id": "algoiptv"
+		"id": "algo"
  }
 }
 
