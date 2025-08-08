@@ -224,8 +224,8 @@ import { reactive, ref, onMounted } from 'vue';
 import Modal from 'flowbite/src/components/modal';
 import { useHead } from "@vueuse/head";
 import * as manifest from '../../manifest.json';
-import * as reg from '../../regions.json';
-const regions = reg.default
+import { ref } from 'vue';
+const regions = ref([]);
 
 const stylizedTypes = manifest.types.map(t => t[0].toUpperCase() + t.slice(1));
 
@@ -253,8 +253,15 @@ const state = reactive({
 
 const searchModal = ref();
 
-onMounted(() => {
+onMounted(async () => {
     state.modal = new Modal(searchModal.value);
+
+    try {
+        const res = await fetch('/regions.json');
+        regions.value = await res.json();
+    } catch (err) {
+        console.error('Failed to load regions:', err);
+    }
 });
 
 
@@ -331,7 +338,7 @@ function removeList(list) {
 async function searchLists() {
     state.modal.show();
     if (state.searchQuery == '') {
-        state.regions = regions
+        state.regions = regions.value
     } else {
         state.regions = filtered(regions, 'name', state.searchQuery)
     }
