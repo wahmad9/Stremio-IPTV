@@ -13,8 +13,8 @@
 		"id": "beiniptv"
 	},
 	"afiptv": {
-		"name": "Afghanistan",
-		"url": "https://iptv-org.github.io/iptv/countries/af.m3u",
+		"name": "Uk Sports",
+		"url": "https://git.nadeko.net/Mystique/Mystique/raw/branch/main/countries/uk_sports.m3u",
 		"id": "afiptv"
 	},
 	"aliptv": {
