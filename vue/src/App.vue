@@ -195,6 +195,7 @@
                                     Addon</button></a>
                         </div>
 
+
                         <div class="mt-5 flex flex-col">
                             <p class="text-center text-gray-400">This addon was created by:
                                 <a href="https://github.com/dexter21767" target="_blank"
@@ -218,12 +219,13 @@
 <script setup>
 import draggable from 'vuedraggable'
 import slugify from 'slugify'
+//import draggable from 'vue3-draggable';
 import { reactive, ref, onMounted } from 'vue';
 import Modal from 'flowbite/src/components/modal';
 import { useHead } from "@vueuse/head";
 import * as manifest from '../../manifest.json';
-
-const regions = ref([]);
+import * as reg from '../../regions.json';
+const regions = reg.default
 
 const stylizedTypes = manifest.types.map(t => t[0].toUpperCase() + t.slice(1));
 
@@ -251,22 +253,19 @@ const state = reactive({
 
 const searchModal = ref();
 
-onMounted(async () => {
+onMounted(() => {
     state.modal = new Modal(searchModal.value);
-
-    try {
-        const res = await fetch('/regions.json');
-        regions.value = await res.json();
-    } catch (err) {
-        console.error('Failed to load regions:', err);
-    }
 });
 
+
 function generateInstallUrl() {
+    
     state.isDisabled = false;
     var providers = [];
     var regionsArray = [];
     var costumArray = [];
+    //var providers = {regions:[],costume:[]};
+    //const regionsValue = state.lists;
     for (let i = 0; i < state.lists.length; i++) {
         let list = state.lists[i];
         if (list.url) {
@@ -275,6 +274,8 @@ function generateInstallUrl() {
             regionsArray.push(list.id)
         }
     }
+    console.log(costumArray);
+
     const regionsValue = regionsArray.join(',') || '';
     const costumeValue = costumArray.join(',') || '';
     const costume = costumeValue.length && costumeValue;
@@ -282,48 +283,132 @@ function generateInstallUrl() {
     providers['regions'] = regions;
     providers['costume'] = costume;
     let configurationValue = Object.keys(providers).map(key => key + '=' + providers[key]).join('|');
+    console.log(configurationValue);
     const configuration = configurationValue && configurationValue.length ? '/' + btoa(configurationValue) : '';
     const location = window.location.host + configuration + '/manifest.json'
+    //navigator.clipboard.writeText('https://' + location);
     document.getElementById("install_button").href = 'stremio://' + location;
 }
 
 function addListUrl() {
-    let url = state.listUrl.trim();
-    let name = state.listName.trim();
-
-    // Full regex pattern for URL validation (continued and completed)
-    const urlPattern = /^(?:(?:https?|ftp):\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]+-?)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))\.?(?::\d{2,5})?(?:[/?#]\S*)?$/i;
-
-    if (!urlPattern.test(url)) {
-        alert('Please enter a valid URL.');
+    let url = state.listUrl
+    let name = state.listName
+    if (!url.match(/^(?:(?:https?|ftp):\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*)?$/i)) {
+        alert('Invalid URL');
         return;
     }
-    if (!name) {
-        alert('Please enter a name for the list.');
-        return;
+    if (url && name) {
+        state.lists.push({
+            name: name,
+            id: slugify(name, { replacement: '_', lower: true, strict: true, }),
+            url: url,
+        });
+    } else {
+        alert('Invalid name or url');
     }
+    generateInstallUrl()
 
-    // Generate an ID using slugify for uniqueness and safety
-    const id = slugify(name, { lower: true, strict: true });
-
-    // Check for duplicates by ID or URL
-    const exists = state.lists.find(l => l.id === id || l.url === url);
-    if (exists) {
-        alert('This list already exists.');
-        return;
-    }
-
-    // Add new list to the state
-    state.lists.push({
-        id,
-        name,
-        url,
-    });
-
-    // Clear input fields
-    state.listName = '';
-    state.listUrl = '';
-
-    // Update install button URL
-    generateInstallUrl();
 }
+
+function addList(list) {
+    removeList(list)
+    state.lists.push({
+        id: list.id,
+        name: list.name
+    });
+    generateInstallUrl()
+}
+
+function removeList(list) {
+    const index = state.lists.indexOf(list);
+    if (index === -1) {
+        return;
+    }
+    state.lists.splice(index, 1);
+    generateInstallUrl()
+}
+
+async function searchLists() {
+    state.modal.show();
+    if (state.searchQuery == '') {
+        state.regions = regions
+    } else {
+        state.regions = filtered(regions, 'name', state.searchQuery)
+    }
+}
+
+function filtered(list, key, value) {
+    var filtered = [], i = Object.keys(list).length;
+    var reg = new RegExp(value, 'gi');
+    while (i--) {
+        console.log(list[Object.keys(list)[i]])
+        if (reg.test(list[Object.keys(list)[i]][key].toLowerCase())) {
+            filtered.push(list[Object.keys(list)[i]]);
+        }
+    }
+    return filtered;
+};
+
+</script>
+
+
+<style scoped>
+h1 {
+    font-weight: bold;
+    font-size: x-large;
+    text-align: center;
+    color: #225C7D;
+    padding-top: 10px;
+}
+
+.logo {
+    margin: auto;
+    max-width: 200px;
+}
+
+.grabbable {
+    cursor: move;
+    /* fallback if grab cursor is unsupported */
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+
+/* (Optional) Apply a "closed-hand" cursor during drag operation. */
+.grabbable:active {
+    cursor: grabbing;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+}
+
+.bg-img {
+    background: fixed;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: repeat-y;
+}
+
+.w-search {
+    width: auto;
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: rgb(26 86 219 / var(--tw-bg-opacity));
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #225C7D;
+}
+</style>
